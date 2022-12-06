@@ -65,7 +65,7 @@ func readFile(file string) ([]string, [][]int) {
 }
 
 // takes in data read in from readFile and generates a solution
-func solver(lines []string, instructions [][]int) {
+func solverPartOne(lines []string, instructions [][]int) {
 
 	stacksString := strings.Split(lines[len(lines)-1], " ")
 
@@ -102,9 +102,10 @@ func solver(lines []string, instructions [][]int) {
 		cratesToMove := ins[0]
 		from := stacks[ins[1]-1]
 		to := stacks[ins[2]-1]
-		stacks[ins[1]-1], stacks[ins[2]-1] = moveCrates(from, to, cratesToMove)
 
+		stacks[ins[1]-1], stacks[ins[2]-1] = moveCrates(from, to, cratesToMove)
 	}
+
 	results := ""
 
 	for _, s := range stacks {
@@ -115,6 +116,53 @@ func solver(lines []string, instructions [][]int) {
 
 }
 
+func solverPartTwo(lines []string, instructions [][]int) {
+
+	stacksString := strings.Split(lines[len(lines)-1], " ")
+
+	numOfStacks, err := strconv.Atoi(stacksString[len(stacksString)-2])
+	if err != nil {
+		fmt.Println("there was an error finding number of stacks: ", err)
+	}
+
+	stacks := []Stack{}
+
+	//generate stacks
+	for i := 1; i <= numOfStacks; i++ {
+		stacks = append(stacks, Stack{})
+	}
+
+	//get rid of last line for data manipulation
+	lines = lines[:len(lines)-1]
+
+	//loop through stack data lines and generate stacks
+	for i := len(lines) - 1; i >= 0; i-- {
+		//index to add to proper stack slice
+		j := 0
+		for k := 1; k <= len(lines[i]); k += 4 {
+			if string(lines[i][k]) == " " {
+				j++
+				continue
+			}
+			stacks[j] = append(stacks[j], string(lines[i][k]))
+			j++
+		}
+	}
+
+	for _, ins := range instructions {
+		n := ins[0]
+		stacks[ins[1]-1], stacks[ins[2]-1] = moveCratesPartTwo(stacks[ins[1]-1], stacks[ins[2]-1], n)
+
+	}
+
+	results := ""
+
+	for _, s := range stacks {
+		results += s[len(s)-1]
+	}
+
+	fmt.Println(results)
+}
 func moveCrates(from Stack, to Stack, numOfCrates int) (Stack, Stack) {
 	// fmt.Sprintf("the input crates are - From: %v - To: %v", from, to)
 	for i := 1; i <= numOfCrates; i++ {
@@ -125,8 +173,25 @@ func moveCrates(from Stack, to Stack, numOfCrates int) (Stack, Stack) {
 	return from, to
 }
 
+// to solve part two with multiple crates picked up at a time
+func moveCratesPartTwo(from Stack, to Stack, numOfCrates int) (Stack, Stack) {
+	// fmt.Println("from: ", from, "to: ", to, "crateNum: ", numOfCrates)
+	tmp := []string{}
+	// this will move from top of stack down
+	for i := 1; i <= numOfCrates; i++ {
+		c, _ := from.Pop()
+		tmp = append(tmp, c)
+	}
+	for i := len(tmp) - 1; i >= 0; i-- {
+		to.Push(tmp[i])
+	}
+	// fmt.Println("from after pop: ", from, "to after push: ", to)
+	return from, to
+}
+
 func main() {
 	lines, instructions := readFile("input.txt")
-	solver(lines, instructions)
-	// fmt.Println(data)
+	solverPartOne(lines, instructions)
+	solverPartTwo(lines, instructions)
+
 }
