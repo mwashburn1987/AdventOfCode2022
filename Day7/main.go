@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -11,7 +12,12 @@ import (
 func main() {
 	data := readFile("input.txt")
 	tree := createTree(data)
-	fmt.Println("Total answer is: ", partOne(tree))
+	fmt.Println("Part one answer is: ", partOne(tree))
+
+	spaceNeeded := tree.size - 40_000_000
+	minFile := math.MaxInt
+
+	fmt.Println("Part two answer is: ", partTwo(tree, spaceNeeded, minFile))
 }
 
 // node properties for our tree
@@ -61,7 +67,7 @@ func readFile(filename string) []string {
 func createTree(lines []string) *Node {
 
 	// create the root of our tree as we know it starts with "/"
-	root := &Node{name: "/", size: 0, children: []*Node{}}
+	root := &Node{name: "/", size: 0, children: []*Node{}, contains: true}
 
 	// set the current node we're operating on as root node
 	cur := root
@@ -126,4 +132,26 @@ func partOne(n *Node) int {
 		}
 	}
 	return total
+}
+
+func partTwo(n *Node, spaceNeeded int, minFile int) int {
+	// search tree for directories, if file size is >=  space needed, check if it's the smallest file that
+	// accomplishes our goal, if so update min and then finally return min
+
+	curMin := minFile
+
+	if n.contains {
+		if n.size >= spaceNeeded {
+			fmt.Println(n.name, n.size)
+			curMin = int(math.Min(float64(curMin), float64(n.size)))
+			fmt.Println("current minFile: ", curMin)
+		} else {
+			return curMin
+		}
+	}
+	for _, node := range n.children {
+		curMin = partTwo(node, spaceNeeded, curMin)
+	}
+
+	return int(curMin)
 }
